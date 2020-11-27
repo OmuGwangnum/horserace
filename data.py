@@ -1,7 +1,7 @@
 # coding: utf-8
 
 import numpy as np
-from horsedb import horseDb
+from db import horseDb
 
 class Data:
     summary = None

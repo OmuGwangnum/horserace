@@ -22,5 +22,3 @@ y_test = np.array(y_test)
 model = model()
 model.train(x_train, y_train)
 model.save('glass_short')
-
-model.eval(x_test, y_test)

@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from horsedb import horseDb
 from model import model
 from data import Data
 
