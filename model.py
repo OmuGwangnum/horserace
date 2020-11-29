@@ -7,14 +7,18 @@ from keras.utils import np_utils
 import os.path
 
 class model:
-    dim = 18*5*10
+    dim = 18*5*13
     model = None
     
     def __init__(self):
         model = Sequential()
-        model.add(Dense(1024, activation='relu', input_dim=self.dim))
+        model.add(Dense(1200, activation='relu', input_dim=self.dim))
         model.add(Dropout(0.5))
-        model.add(Dense(1024, activation='relu'))
+        model.add(Dense(1200, activation='relu'))
+        model.add(Dropout(0.5))
+        model.add(Dense(1200, activation='relu'))
+        model.add(Dropout(0.5))
+        model.add(Dense(1200, activation='relu'))
         model.add(Dropout(0.5))
         model.add(Dense(18, activation='sigmoid'))
         model.compile(optimizer='rmsprop',
@@ -42,14 +46,14 @@ class model:
 
     def save(self, name):
         json_string = self.model.to_json()
-        json_name = name + '.json'
-        weight_name = name + '.hdf5'
+        json_name = 'model/' + name + '.json'
+        weight_name = 'model/' + name + '.hdf5'
         open(os.path.join('./', json_name), 'w').write(json_string)
         self.model.save_weights(os.path.join('./', weight_name))
 
     def load(self, name):
-        json_name = name + '.json'
-        weight_name = name + '.hdf5'
+        json_name = 'model/' + name + '.json'
+        weight_name = 'model/' + name + '.hdf5'
         json_string = open(os.path.join('./', json_name)).read()
         model = model_from_json(json_string)
         model.compile(optimizer='rmsprop',

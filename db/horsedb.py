@@ -20,59 +20,13 @@ class horseDb:
             charset = self.charset
         )
 
-    def getTrainDataForGlassShort(self):
-        sql = "\
-select blood_number, horse_name, date, distance, race_type, left_right, \
-corse_condition, order_of_arrival, race_time, idm, drawback, race_pace, \
-horse_pace \
-from result \
-where date < '2020-01-01' \
-and date > '2015-01-01' \
-and race_type != 1 \
-and distance >= 1000 and distance <= 1600 \
-order by date desc \
-"
-        cur = self.conn.cursor()
-        cur.execute(sql)
-        return cur.fetchall()
-
-    def getResultList(self):
-        cur = self.conn.cursor()
-        sql = "\
-select blood_number, horse_name, date, distance, race_type, left_right, \
-corse_condition, order_of_arrival, race_time, idm, drawback, race_pace, \
-horse_pace \
-from result \
-where date < '2020-01-01' \
-and date > '2019-01-01' \
-and race_type != 3 \
-order by date desc \
-limit 10000 \
-"
-        cur.execute(sql)
-        return cur.fetchall()
-
-    def getTestResultList(self):
-        cur = self.conn.cursor()
-        sql = "\
-select blood_number, horse_name, date, distance, race_type, left_right, \
-corse_condition, order_of_arrival, race_time, idm, drawback, race_pace, \
-horse_pace \
-from result \
-where date > '2020-01-01' \
-and race_type != 3 \
-order by date desc \
-limit 10 \
-"
-        cur.execute(sql)
-        return cur.fetchall()
-
     def getResultListForBloodId(self, id, date):
         sql = "\
 select \
 (distance - 1000)/2600 as dist, \
 race_type, left_right, corse_condition, order_of_arrival, \
-race_time, idm, drawback, start_late, top_time_diff \
+race_time, idm, drawback, start_late, top_time_diff, \
+place_code, first_time, last_time \
 from result \
 join race on result.race_key = race.race_key \
 where blood_number = '" + str(id) + "' \
@@ -86,26 +40,36 @@ limit 5"
 
     def getRaceTimeSummary(self):
         sql = "\
-select stddev(race_time) as std, avg(race_time) as avg \
+select \
+stddev(race_time) as race_std, avg(race_time) as race_avg, \
+stddev(first_time) as first_std, avg(first_time) as first_avg, \
+stddev(last_time) as last_std, avg(last_time) as last_avg \
 from result"
         cur = self.conn.cursor()
         cur.execute(sql)
         return cur.fetchone()
 
-    def getRaceKeys(self, date, raceType, distance, minDate = None, limit=None):
+    def getRaceKeys(self, date, raceType, minDistance=None, maxDistance=None, minDate=None, limit=None):
         sql = "\
 select race_key, date from race \
 where date < '" + date + "'"
         if(minDate != None):
             sql += " and date > '" + minDate + "'"
 
+        if(minDistance != None):
+            sql += " and distance >= " + str(minDistance) + " "
+
+        if(maxDistance != None):
+            sql += " and distance <= " + str(maxDistance) + " "
+
         sql += " \
 and race_type = " + str(raceType) + " \
-and distance <= " + str(distance) + " \
 order by date desc, race_count asc \
 "
         if(limit != None):
             sql += "limit " + str(limit)
+
+        print(sql)
 
         cur = self.conn.cursor()
         cur.execute(sql)

@@ -11,7 +11,7 @@ class Data:
         self.summary = db.getRaceTimeSummary()
     
     def __getDummyRaceData(self):
-        return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        return [0]*13
 
     def __makeDataFromRaceKey(self, raceKey, date):
         # raceKey is (racekey, none) tuple
@@ -21,6 +21,8 @@ class Data:
 
         data = []
         label = []
+        # TODO: 過去走情報だけでなく、競走条件も入れる
+        # 競走条件に対する過去5走という見方をする方がよさげ？
         for result in results:
             horseData = db.getResultListForBloodId(result[0], date)
 
@@ -74,16 +76,47 @@ class Data:
         data[3] = float(data[3])/100
         # idm
         data[6] = float(data[6])/100
+        # place_code TODO:標準化かEmbedding
+        data[10] = float(data[10])/10
+        # first_time
+        data[11] = (data[11] - float(self.summary[3]))/self.summary[2]
+        # last_time
+        data[12] = (data[12] - float(self.summary[5]))/self.summary[4]
 
         return data
 
-    def __getGlassShortRaceKeys(self, date, minDate, raceType, distance):
+    def __getGlassShortRaceKeys(self, date, minDate):
         db = horseDb()
-        raceKeys = db.getRaceKeys(date, raceType, distance, minDate=minDate)
+        raceKeys = db.getRaceKeys(date, 1, maxDistance=1600, minDate=minDate)
         return raceKeys
+
+    def __getGlassMiddleRaceKeys(self, date, minDate):
+        db = horseDb()
+        raceKeys = db.getRaceKeys(date, 1, minDistance=1800, maxDistance=2400, minDate=minDate)
+        return raceKeys
+
+    def __getGlassLongRaceKeys(self, date, minDate):
+        db = horseDb()
+        raceKeys = db.getRaceKeys(date, 1, minDistance=2400, minDate=minDate)
+        return raceKeys
+
+    def __getDirtShortRaceKeys(self, date, minDate):
+        db = horseDb()
+        raceKeys = db.getRaceKeys(date, 2, maxDistance=1600, minDate=minDate)
+        return raceKeys
+
+    def __getDirtMiddleRaceKeys(self, date, minDate):
+        db = horseDb()
+        raceKeys = db.getRaceKeys(date, 2, minDistance=1800, minDate=minDate)
+        return raceKeys
+
+    def getRaceDataFromRaceKey(self, racekey, date):
+        db = horseDb()
+        data, label = self.__makeDataFromRaceKey(racekey, date)
+        return data, label
     
     def getGlassShortTrainData(self):
-        raceKeys = self.__getGlassShortRaceKeys('2020-01-01', '2015-01-01', 1, 1600)
+        raceKeys = self.__getGlassShortRaceKeys('2020-01-01', '2015-01-01')
 
         retData = []
         retLabel = []
@@ -92,22 +125,10 @@ class Data:
             retData.append(data)
             retLabel.append(label)
 
-        print("finish train data.")
         return retData, retLabel
 
-    # TODO: input shape error [None, 1]
-    def getGlassShortTrainGenerator(self):
-        raceKeys = self.__getGlassShortRaceKeys('2020-01-01', '2015-01-01', 1, 1600)
-
-        for key in raceKeys:
-            data, label = self.__makeDataFromRaceKey(key[0], key[1])
-            data = np.array(data)
-            data = np.reshape(data, 900)
-            label = np.array(label)
-            yield (data, label)
-
     def getGlassShortTestData(self):
-        raceKeys = self.__getGlassShortRaceKeys('2020-09-01', '2020-01-01', 1, 1600)
+        raceKeys = self.__getGlassShortRaceKeys('2020-09-01', '2020-01-01')
 
         retData = []
         retLabel = []
@@ -120,17 +141,56 @@ class Data:
         print("finish test data.")
         return retData, retLabel
         
-    def getGlassShortTestGenerator(self):
-        raceKeys = self.__getGlassShortRaceKeys('2020-09-01', '2020-01-01', 1, 1600)
-        
+    def getDirtShortTrainData(self):
+        raceKeys = self.__getGlassShortRaceKeys('2020-01-01', '2014-01-01')
+        retData = []
+        retLabel = []
+
         for key in raceKeys:
             data, label = self.__makeDataFromRaceKey(key[0], key[1])
             data = np.array(data)
             data = np.reshape(data, 900)
             label = np.array(label)
-            yield data, label
 
-    def getRaceDataFromRaceKey(self, racekey, date):
-        db = horseDb()
-        data, label = self.__makeDataFromRaceKey(racekey, date)
-        return data, label
+        return retData, retLabel
+
+    def getDirtShortTestData(self):
+        raceKeys = self.__getGlassShortRaceKeys('2020-09-01', '2020-01-01')
+
+        retData = []
+        retLabel = []
+        print("create test data.")
+        for key in raceKeys:
+            data, label = self.__makeDataFromRaceKey(key[0], key[1])
+            retData.append(data)
+            retLabel.append(label)
+
+        print("finish test data.")
+        return retData, retLabel
+        
+    def getGlassMiddleTrainData(self):
+        raceKeys = self.__getGlassShortRaceKeys('2020-01-01', '2015-01-01')
+
+        retData = []
+        retLabel = []
+        for key in raceKeys:
+            data, label = self.__makeDataFromRaceKey(key[0], key[1])
+            retData.append(data)
+            retLabel.append(label)
+
+        return retData, retLabel
+
+    def getGlassMiddleTestData(self):
+        raceKeys = self.__getGlassShortRaceKeys('2020-09-01', '2020-01-01')
+
+        retData = []
+        retLabel = []
+        print("create test data.")
+        for key in raceKeys:
+            data, label = self.__makeDataFromRaceKey(key[0], key[1])
+            retData.append(data)
+            retLabel.append(label)
+
+        print("finish test data.")
+        return retData, retLabel
+    

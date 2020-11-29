@@ -8,15 +8,16 @@ import sys
 from data import Data
 from model import model
 
+size = 18*5*13
 data = Data()
 
 x_train, y_train = data.getGlassShortTrainData()
 x_train = np.array(x_train)
-x_train = np.reshape(x_train, (x_train.shape[0], 900))
+x_train = np.reshape(x_train, (x_train.shape[0], size))
 y_train = np.array(y_train)
 x_test, y_test = data.getGlassShortTestData()
 x_test = np.array(x_test)
-x_test = np.reshape(x_test, (x_test.shape[0], 900))
+x_test = np.reshape(x_test, (x_test.shape[0], size))
 y_test = np.array(y_test)
 
 model = model()
